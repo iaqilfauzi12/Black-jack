@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Blackjack — Mobile Edition</title>
+  <style>
+    :root {
+      --bg-outer: #072617;
+      --felt: #115230;
+      --felt-dark: #0c3d23;
+      --accent-gold: #f4d03f;
+      --accent-green: #2ecc71;
+      --accent-blue: #3498db;
+      --accent-purple: #8e44ad;
+      --accent-orange: #e67e22;
+      --accent-red: #e74c3c;
+      --text-main: #f8f9f9;
+      --text-muted: #a9dfbf;
+      --card-w: 72px;
+      --card-h: 104px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--bg-outer);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
+    }
+
+    .app {
+      max-width: 460px;
+      min-height: 100dvh;
+      margin: 0 auto;
+      background: radial-gradient(circle at top, #17663d 0%, var(--felt) 55%, var(--felt-dark) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.55);
+      position: relative;
+    }
+
+    /* Top Bar */
+    .topbar {
+      background: rgba(6, 30, 18, 0.9);
+      backdrop-filter: blur(8px);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      max-width: 130px;
+    }
+
+    .user-pill span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .top-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .balance-box {
+      background: rgba(244, 208, 63, 0.14);
+      border: 1px solid rgba(244, 208, 63, 0.4);
+      color: var(--accent-gold);
+      padding: 6px 9px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* Table Area */
+    .table-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      padding: 8px 14px;
+      gap: 6px;
+    }
+
+    .zone-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      padding: 0 4px;
+    }
+
+    .zone-title {
+      font-size: 12px;
+      letter-spacing: 1.2px;
+      font-weight: 800;
+      color: var(--text-muted);
+    }
+
+    .score-badge {
+      background: rgba(0, 0, 0, 0.32);
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-gold);
+    }
+
+    .bet-badge {
+      background: rgba(230, 126, 34, 0.25);
+      border: 1px solid rgba(230, 126, 34, 0.6);
+      color: #fad7a0;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .cards-row {
+      min-height: calc(var(--card-h) + 8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 0;
+    }
+
+    .card {
+      width: var(--card-w);
+      height: var(--card-h);
+      background: #ffffff;
+      color: #1c2833;
+      border-radius: 10px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 6px 7px;
+      font-weight: 800;
+      position: relative;
+      margin-left: -18px;
+      animation: dealIn 0.18s ease-out;
+      flex-shrink: 0;
+    }
+
+    .card:first-child {
+      margin-left: 0;
+    }
+
+    @keyframes dealIn {
+      from {
+        opacity: 0;
+        transform: translate(28px, -24px) scale(0.92);
+      }
+      to {
+        opacity: 1;
+        transform: translate(0, 0) scale(1);
+      }
+    }
+
+    .card.red {
+      color: #c0392b;
+    }
+
+    .card.black {
+      color: #1c2833;
+    }
+
+    .card-corner {
+      font-size: 13px;
+      line-height: 1.05;
+      text-align: left;
+    }
+
+    .card-center {
+      font-size: 28px;
+      line-height: 1;
+      text-align: center;
+    }
+
+    .card-corner.bottom {
+      transform: rotate(180deg);
+    }
+
+    .card.back {
+      background: repeating-linear-gradient(
+        45deg,
+        #1b4f72,
+        #1b4f72 6px,
+        #2471a3 6px,
+        #2471a3 12px
+      );
+      border: 3px solid #ffffff;
+      color: transparent;
+    }
+
+    /* Status Banner */
+    .status-banner {
+      text-align: center;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.28);
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--accent-gold);
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.3;
+    }
+
+    .status-banner.win {
+      background: rgba(46, 204, 113, 0.22);
+      color: #82e0aa;
+      border: 1px solid rgba(46, 204, 113, 0.45);
+    }
+
+    .status-banner.lose {
+      background: rgba(231, 76, 60, 0.22);
+      color: #f5b7b1;
+      border: 1px solid rgba(231, 76, 60, 0.45);
+    }
+
+    .status-banner.push {
+      background: rgba(244, 208, 63, 0.2);
+      color: #f9e79f;
+      border: 1px solid rgba(244, 208, 63, 0.45);
+    }
+
+    /* Thumb Controls */
+    .controls {
+      background: rgba(6, 30, 18, 0.94);
+      padding: 10px 14px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .chip-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .chip-btn {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 10px;
+      padding: 8px 4px;
+      font-size: 11.5px;
+      font-weight: 800;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .chip-btn.gold {
+      background: rgba(244, 208, 63, 0.18);
+      border-color: rgba(244, 208, 63, 0.45);
+      color: var(--accent-gold);
+    }
+
+    .chip-btn.active-toggle {
+      background: rgba(46, 204, 113, 0.28);
+      border-color: var(--accent-green);
+      color: #abebc6;
+    }
+
+    .chip-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .btn-main {
+      height: 50px;
+      border: none;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      color: #fff;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.08s ease, opacity 0.15s ease;
+    }
+
+    .btn-main:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+
+    .btn-main:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .btn-hit {
+      background: #27ae60;
+    }
+
+    .btn-stay {
+      background: #2980b9;
+    }
+
+    .btn-double {
+      background: var(--accent-purple);
+    }
+
+    .btn-deal {
+      grid-column: 1 / -1;
+      background: var(--accent-orange);
+    }
+
+    .lock-box {
+      grid-column: 1 / -1;
+      background: rgba(231, 76, 60, 0.16);
+      border: 1px solid rgba(231, 76, 60, 0.5);
+      border-radius: 14px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .lock-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #f5b7b1;
+    }
+
+    .lock-sub {
+      font-size: 12px;
+      color: #fadbd8;
+      margin-top: 3px;
+    }
+
+    /* Modal / Bottom Sheet */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .sheet {
+      width: 100%;
+      max-width: 460px;
+      background: #0d3b22;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      padding: 18px 16px 26px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      max-height: 82dvh;
+      overflow-y: auto;
+    }
+
+    .sheet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .sheet-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--accent-gold);
+    }
+
+    .close-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: none;
+      color: #fff;
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .input-group input {
+      flex: 1;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.3);
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .input-group button {
+      padding: 11px 16px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent-green);
+      color: #062514;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .lb-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .lb-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.07);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    .lb-item.me {
+      background: rgba(244, 208, 63, 0.18);
+      border: 1px solid rgba(244, 208, 63, 0.5);
+    }
+
+    .lb-rank {
+      font-weight: 800;
+      width: 28px;
+      color: var(--accent-gold);
+    }
+
+    .lb-name {
+      flex: 1;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding-right: 8px;
+    }
+
+    .lb-chips {
+      font-weight: 800;
+      color: #82e0aa;
+    }
+
+    .hint-note {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="user-pill" onclick="openUsernameModal()" title="Ganti Username">
+        <span>👤 <strong id="topUsername">Player</strong></span>
+        <small>✏️</small>
+      </div>
+      <div class="top-right">
+        <div class="balance-box">🪙 <span id="balanceText">1,000</span></div>
+        <button class="icon-btn" id="btnSound" onclick="toggleSound()" title="Suara & Getar">🔊</button>
+        <button class="icon-btn" onclick="openLeaderboardModal()">🏆 Top 10</button>
+      </div>
+    </header>
+
+    <!-- Meja Permainan -->
+    <main class="table-area">
+      <!-- Dealer -->
+      <div>
+        <div class="zone-header">
+          <span class="zone-title">BANDAR</span>
+          <span class="score-badge" id="dealerScore">Skor: -</span>
+        </div>
+        <div class="cards-row" id="dealerCards"></div>
+      </div>
+
+      <!-- Status -->
+      <div class="status-banner" id="statusBanner">
+        Atur taruhan lalu tekan BAGIKAN KARTU
+      </div>
+
+      <!-- Player -->
+      <div>
+        <div class="zone-header">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="zone-title">KAMU</span>
+            <span class="bet-badge">BET: <span id="betText">50</span></span>
+          </div>
+          <span class="score-badge" id="playerScore">Skor: -</span>
+        </div>
+        <div class="cards-row" id="playerCards"></div>
+      </div>
+    </main>
+
+    <!-- Kontrol Bawah (Thumb Zone) -->
+    <footer class="controls">
+      <div class="chip-row">
+        <button class="chip-btn" id="chip25" onclick="addBet(25)">+25</button>
+        <button class="chip-btn" id="chip50" onclick="addBet(50)">+50</button>
+        <button class="chip-btn" id="chip100" onclick="addBet(100)">+100</button>
+        <button class="chip-btn" id="chipReset" onclick="resetBet()">RESET</button>
+        <button class="chip-btn gold" id="chipAutoUp" onclick="toggleAutoBetUp()" title="Naikkan bet +25 otomatis saat menang">
+          UP+25: OFF
+        </button>
+      </div>
+
+      <div class="action-row">
+        <button class="btn-main btn-hit" id="btnHit" onclick="playerHit()" disabled>HIT</button>
+        <button class="btn-main btn-stay" id="btnStay" onclick="playerStay()" disabled>STAY</button>
+        <button class="btn-main btn-double" id="btnDouble" onclick="playerDoubleDown()" disabled>DOUBLE</button>
+        <button class="btn-main btn-deal" id="btnDeal" onclick="startRound()">BAGIKAN KARTU</button>
+
+        <div class="lock-box" id="lockBox" style="display:none;">
+          <div class="lock-title">⛔ Chip Habis — Coba lagi lain kali!</div>
+          <div class="lock-sub" id="lockCountdown">Device dikunci sementara.</div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modal Username -->
+  <div class="modal-backdrop" id="usernameModal" onclick="backdropClose(event, 'usernameModal')">
+    <div class="sheet">
+      <div class="sheet-header">
+        <span class="sheet-title">👤 Masukkan Username</span>
+        <button class="close-btn" onclick="closeModal('usernameModal')">Tutup</button>
+      </div>
+      <div class="input-group">
+        <input type="text" id="usernameInput" maxlength="16" placeholder="Contoh: @ibnu / Raka" />
+        <button onclick="saveUsername()">Simpan</button>
+      </div>
+      <div class="hint-note">
+        Username ini akan tampil di papan Leaderboard saat skor/chip terbaikmu tercatat.
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Leaderboard -->
+  <div class="modal-backdrop" id="leaderboardModal" onclick="backdropClose(event, 'leaderboardModal')">
+    <div class="sheet">
+      <div class="sheet-header">
+        <span class="sheet-title">🏆 Leaderboard Chip Tertinggi</span>
+        <button class="close-btn" onclick="closeModal('leaderboardModal')">Tutup</button>
+      </div>
+      <div class="lb-list" id="lbList"></div>
+      <div class="hint-note">
+        Menampilkan peringkat chip tertinggi lintas pemain di Supabase.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://pbxbosrkdxqvshibckvs.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_kHfp89WGJezpIK0TK8ce5Q_dmYuPjFF";
+
+    const LB_HEADERS = {
+      "apikey": SUPABASE_ANON_KEY,
+      "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+    };
+
+    const INITIAL_BALANCE = 1000;
+    const LOCKOUT_HOURS = 12;
+
+    const SUITS = [
+      { key: "spades", symbol: "♠", color: "black" },
+      { key: "hearts", symbol: "♥", color: "red" },
+      { key: "clubs", symbol: "♣", color: "black" },
+      { key: "diamonds", symbol: "♦", color: "red" },
+    ];
+    const RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+
+    // Audio & Haptic Feedback
+    let soundEnabled = localStorage.getItem("bj_sound") !== "false";
+    let audioCtx = null;
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+      }
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    }
+
+    function vibrateDevice(pattern) {
+      if (!soundEnabled) return;
+      try {
+        if (navigator.vibrate) navigator.vibrate(pattern);
+      } catch (_) {}
+    }
+
+    function playCardSound() {
+      vibrateDevice(14);
+      if (!soundEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+      const bufferSize = Math.floor(ctx.sampleRate * 0.045);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.35));
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.setValueAtTime(1600, now);
+      filter.Q.setValueAtTime(1.2, now);
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.22, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      noise.start(now);
+    }
+
+    function playWinSound(isBlackjack = false) {
+      vibrateDevice(isBlackjack ? [40, 50, 70] : [35, 40, 35]);
+      if (!soundEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+
+      const notes = isBlackjack ? [523.25, 659.25, 783.99, 1046.5] : [523.25, 659.25, 783.99];
+      const now = ctx.currentTime;
+
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, now + idx * 0.085);
+
+        gain.gain.setValueAtTime(0.001, now + idx * 0.085);
+        gain.gain.linearRampToValueAtTime(0.16, now + idx * 0.085 + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.085 + 0.22);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + idx * 0.085);
+        osc.stop(now + idx * 0.085 + 0.24);
+      });
+    }
+
+    function playLoseSound(isBust = false) {
+      vibrateDevice(isBust ? [90, 40, 90] : [75]);
+      if (!soundEnabled) return;
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(isBust ? 240 : 280, now);
+      osc.frequency.exponentialRampToValueAtTime(isBust ? 95 : 130, now + 0.28);
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(900, now);
+
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.29);
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.3);
+    }
+
+    function updateSoundButton() {
+      el("btnSound").textContent = soundEnabled ? "🔊" : "🔇";
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem("bj_sound", String(soundEnabled));
+      updateSoundButton();
+      if (soundEnabled) {
+        getAudioCtx();
+        playCardSound();
+      }
+    }
+
+    let username = localStorage.getItem("bj_username") || "";
+    let balance = Number(localStorage.getItem("bj_balance") ?? INITIAL_BALANCE);
+    let bestChips = Number(localStorage.getItem("bj_best") ?? balance);
+    let bet = Number(localStorage.getItem("bj_bet") ?? 50);
+    let autoBetUp = localStorage.getItem("bj_auto_up") === "true";
+    let lockUntil = Number(localStorage.getItem("bj_lock_until") ?? 0);
+
+    let deck = [];
+    let playerHand = [];
+    let dealerHand = [];
+    let roundActive = false;
+    let doubledThisRound = false;
+
+    const el = (id) => document.getElementById(id);
+
+    function formatNum(n) {
+      return Number(n).toLocaleString("id-ID");
+    }
+
+    function isDeviceLocked() {
+      return Date.now() < lockUntil;
+    }
+
+    function formatRemaining(ms) {
+      const totalSec = Math.max(0, Math.ceil(ms / 1000));
+      const jam = Math.floor(totalSec / 3600);
+      const menit = Math.floor((totalSec % 3600) / 60);
+      const detik = totalSec % 60;
+      if (jam > 0) return `${jam}j ${menit}m ${detik}d`;
+      return `${menit}m ${detik}d`;
+    }
+
+    function saveActiveRoundState() {
+      if (!roundActive) {
+        localStorage.removeItem("bj_active_round");
+        return;
+      }
+      localStorage.setItem(
+        "bj_active_round",
+        JSON.stringify({
+          deck,
+          playerHand,
+          dealerHand,
+          bet,
+          balance,
+          doubledThisRound,
+        })
+      );
+    }
+
+    function restoreActiveRoundState() {
+      try {
+        const raw = localStorage.getItem("bj_active_round");
+        if (!raw) return false;
+        const saved = JSON.parse(raw);
+        if (!saved || !Array.isArray(saved.playerHand) || saved.playerHand.length < 2) return false;
+        deck = saved.deck || [];
+        playerHand = saved.playerHand;
+        dealerHand = saved.dealerHand || [];
+        bet = Number(saved.bet) || 50;
+        balance = Number(saved.balance) ?? balance;
+        doubledThisRound = Boolean(saved.doubledThisRound);
+        roundActive = true;
+        setStatus("Ronde terjeda dilanjutkan — pilih aksi!");
+        return true;
+      } catch (_) {
+        localStorage.removeItem("bj_active_round");
+        return false;
+      }
+    }
+
+    function ensureUsername() {
+      if (!username) {
+        username = "Player_" + Math.floor(100 + Math.random() * 900);
+        localStorage.setItem("bj_username", username);
+      }
+      el("topUsername").textContent = username;
+    }
+
+    function openUsernameModal() {
+      el("usernameInput").value = username;
+      el("usernameModal").classList.add("show");
+      setTimeout(() => el("usernameInput").focus(), 50);
+    }
+
+    function saveUsername() {
+      const val = el("usernameInput").value.trim();
+      username = val || ("Player_" + Math.floor(100 + Math.random() * 900));
+      localStorage.setItem("bj_username", username);
+      el("topUsername").textContent = username;
+      syncLeaderboard();
+      closeModal("usernameModal");
+    }
+
+    async function fetchGlobalLeaderboard() {
+      try {
+        const url = `${SUPABASE_URL}/rest/v1/leaderboard?select=username,chips&order=chips.desc&limit=10`;
+        const res = await fetch(url, { headers: LB_HEADERS });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+        return Array.isArray(rows)
+          ? rows.map((r) => ({ name: r.username, chips: Number(r.chips) }))
+          : [];
+      } catch (err) {
+        console.warn("Gagal ambil leaderboard Supabase:", err);
+        return [];
+      }
+    }
+
+    async function pushScoreToSupabase(playerName, scoreChips) {
+      try {
+        const checkUrl = `${SUPABASE_URL}/rest/v1/leaderboard?username=eq.${encodeURIComponent(playerName)}&select=chips`;
+        const checkRes = await fetch(checkUrl, { headers: LB_HEADERS });
+        if (!checkRes.ok) throw new Error(`HTTP ${checkRes.status}`);
+        const existing = await checkRes.json();
+
+        if (Array.isArray(existing) && existing.length > 0) {
+          const prevBest = Number(existing[0].chips);
+          if (scoreChips > prevBest) {
+            await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?username=eq.${encodeURIComponent(playerName)}`, {
+              method: "PATCH",
+              headers: { ...LB_HEADERS, "Prefer": "return=minimal" },
+              body: JSON.stringify({
+                chips: scoreChips,
+                updated_at: new Date().toISOString(),
+              }),
+            });
+          }
+        } else {
+          await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+            method: "POST",
+            headers: { ...LB_HEADERS, "Prefer": "return=minimal" },
+            body: JSON.stringify({
+              username: playerName,
+              chips: scoreChips,
+            }),
+          });
+        }
+      } catch (err) {
+        console.warn("Gagal kirim skor ke Supabase:", err);
+      }
+    }
+
+    function syncLeaderboard() {
+      if (balance > bestChips) {
+        bestChips = balance;
+        localStorage.setItem("bj_best", String(bestChips));
+      }
+      pushScoreToSupabase(username, bestChips);
+    }
+
+    function renderLeaderboardRows(board) {
+      if (!board.length) {
+        el("lbList").innerHTML = `<div class="hint-note">Belum ada skor tercatat di leaderboard.</div>`;
+        return;
+      }
+      el("lbList").innerHTML = board
+        .map((row, idx) => {
+          const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${idx + 1}`;
+          const isMe = row.name === username;
+          return `
+            <div class="lb-item ${isMe ? "me" : ""}">
+              <span class="lb-rank">${medal}</span>
+              <span class="lb-name">${escapeHtml(row.name)} ${isMe ? "(Kamu)" : ""}</span>
+              <span class="lb-chips">🪙 ${formatNum(row.chips)}</span>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    async function openLeaderboardModal() {
+      el("leaderboardModal").classList.add("show");
+      el("lbList").innerHTML = `<div class="hint-note">Memuat leaderboard global...</div>`;
+      const board = await fetchGlobalLeaderboard();
+      renderLeaderboardRows(board);
+    }
+
+    function closeModal(id) {
+      el(id).classList.remove("show");
+    }
+
+    function backdropClose(e, id) {
+      if (e.target.id === id) closeModal(id);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+    }
+
+    function createDeck() {
+      const d = [];
+      for (const s of SUITS) {
+        for (const r of RANKS) {
+          d.push({ rank: r, suit: s.symbol, color: s.color });
+        }
+      }
+      for (let i = d.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [d[i], d[j]] = [d[j], d[i]];
+      }
+      return d;
+    }
+
+    function calcScore(hand) {
+      let total = 0;
+      let aces = 0;
+      for (const c of hand) {
+        if (["J", "Q", "K"].includes(c.rank)) total += 10;
+        else if (c.rank === "A") {
+          total += 11;
+          aces += 1;
+        } else total += Number(c.rank);
+      }
+      while (total > 21 && aces > 0) {
+        total -= 10;
+        aces -= 1;
+      }
+      return total;
+    }
+
+    function renderCardEl(card, hidden = false) {
+      const div = document.createElement("div");
+      if (hidden) {
+        div.className = "card back";
+        return div;
+      }
+      div.className = `card ${card.color}`;
+      div.innerHTML = `
+        <div class="card-corner">${card.rank}<br>${card.suit}</div>
+        <div class="card-center">${card.suit}</div>
+        <div class="card-corner bottom">${card.rank}<br>${card.suit}</div>
+      `;
+      return div;
+    }
+
+    function renderHands(revealDealer = false) {
+      const dContainer = el("dealerCards");
+      const pContainer = el("playerCards");
+      dContainer.innerHTML = "";
+      pContainer.innerHTML = "";
+
+      dealerHand.forEach((card, idx) => {
+        const hide = idx === 1 && !revealDealer;
+        dContainer.appendChild(renderCardEl(card, hide));
+      });
+
+      playerHand.forEach((card) => {
+        pContainer.appendChild(renderCardEl(card, false));
+      });
+
+      const pScore = calcScore(playerHand);
+      let pText = playerHand.length ? `Skor: ${pScore}` : "Skor: -";
+      if (pScore > 21) pText += " (BUST)";
+      else if (pScore === 21 && playerHand.length === 2) pText += " (BJ!)";
+      el("playerScore").textContent = pText;
+
+      if (!dealerHand.length) {
+        el("dealerScore").textContent = "Skor: -";
+      } else if (revealDealer) {
+        const dScore = calcScore(dealerHand);
+        el("dealerScore").textContent = `Skor: ${dScore}${dScore > 21 ? " (BUST)" : ""}`;
+      } else {
+        el("dealerScore").textContent = `Skor: ${calcScore([dealerHand[0]])} + ?`;
+      }
+    }
+
+    function canDoubleDown() {
+      return roundActive && !doubledThisRound && playerHand.length === 2 && balance >= bet && bet > 0;
+    }
+
+    function updateUI() {
+      localStorage.setItem("bj_balance", String(balance));
+      localStorage.setItem("bj_bet", String(bet));
+      localStorage.setItem("bj_auto_up", String(autoBetUp));
+
+      const locked = !roundActive && isDeviceLocked();
+      if (!roundActive && !locked && bet > balance) {
+        bet = balance >= 50 ? 50 : balance;
+      }
+
+      el("balanceText").textContent = formatNum(balance);
+      el("betText").textContent = formatNum(bet);
+
+      const autoBtn = el("chipAutoUp");
+      autoBtn.textContent = autoBetUp ? "UP+25: ON" : "UP+25: OFF";
+      autoBtn.classList.toggle("active-toggle", autoBetUp);
+
+      const canBet = !roundActive && !locked && balance > 0;
+      ["chip25", "chip50", "chip100", "chipReset"].forEach((id) => {
+        el(id).disabled = !canBet;
+      });
+      autoBtn.disabled = roundActive || locked;
+
+      el("btnHit").disabled = !roundActive || doubledThisRound;
+      el("btnStay").disabled = !roundActive;
+      el("btnDouble").disabled = !canDoubleDown();
+
+      if (locked) {
+        el("btnDeal").style.display = "none";
+        el("lockBox").style.display = "block";
+        el("lockCountdown").textContent = `Coba lagi lain kali (${formatRemaining(lockUntil - Date.now())} lagi).`;
+      } else {
+        el("lockBox").style.display = "none";
+        el("btnDeal").style.display = roundActive ? "none" : "block";
+        el("btnDeal").disabled = roundActive || bet <= 0 || bet > balance;
+      }
+    }
+
+    function setStatus(msg, type = "") {
+      const b = el("statusBanner");
+      b.textContent = msg;
+      b.className = "status-banner" + (type ? ` ${type}` : "");
+    }
+
+    function addBet(amount) {
+      if (roundActive || isDeviceLocked()) return;
+      bet = Math.min(balance, bet + amount);
+      playCardSound();
+      updateUI();
+    }
+
+    function resetBet() {
+      if (roundActive || isDeviceLocked()) return;
+      bet = 0;
+      updateUI();
+    }
+
+    function toggleAutoBetUp() {
+      autoBetUp = !autoBetUp;
+      playCardSound();
+      updateUI();
+    }
+
+    function startRound() {
+      if (roundActive || isDeviceLocked() || bet <= 0 || bet > balance) return;
+      getAudioCtx();
+      balance -= bet;
+      roundActive = true;
+      doubledThisRound = false;
+      deck = createDeck();
+      playerHand = [deck.pop(), deck.pop()];
+      dealerHand = [deck.pop(), deck.pop()];
+
+      saveActiveRoundState();
+      updateUI();
+      renderHands(false);
+      playCardSound();
+
+      const pScore = calcScore(playerHand);
+      const dScore = calcScore(dealerHand);
+      if (pScore === 21) {
+        renderHands(true);
+        if (dScore === 21) {
+          finishRound("SERI BLACKJACK! Taruhan kembali 🤝", "push");
+        } else {
+          const bonus = Math.floor((bet * 3) / 2);
+          finishRound(`BLACKJACK! +${formatNum(bonus)} chip 🎉`, "blackjack");
+        }
+        return;
+      }
+
+      setStatus("Giliranmu: HIT, STAY, atau DOUBLE?");
+    }
+
+    function playerHit() {
+      if (!roundActive || doubledThisRound) return;
+      playerHand.push(deck.pop());
+      saveActiveRoundState();
+      renderHands(false);
+      playCardSound();
+      updateUI();
+
+      const pScore = calcScore(playerHand);
+      if (pScore > 21) {
+        renderHands(true);
+        finishRound(`BUST (${pScore})! Taruhan ${formatNum(bet)} hangus 💸`, "bust");
+      } else if (pScore === 21) {
+        playerStay();
+      }
+    }
+
+    function playerDoubleDown() {
+      if (!canDoubleDown()) return;
+      balance -= bet;
+      bet *= 2;
+      doubledThisRound = true;
+      playerHand.push(deck.pop());
+
+      saveActiveRoundState();
+      renderHands(false);
+      playCardSound();
+      updateUI();
+
+      const pScore = calcScore(playerHand);
+      if (pScore > 21) {
+        renderHands(true);
+        finishRound(`DOUBLE BUST (${pScore})! Taruhan ${formatNum(bet)} hangus 💸`, "bust");
+      } else {
+        setStatus(`DOUBLE DOWN! Bet jadi ${formatNum(bet)} — giliran Bandar...`);
+        setTimeout(() => {
+          playerStay();
+        }, 420);
+      }
+    }
+
+    function playerStay() {
+      if (!roundActive) return;
+      roundActive = false;
+      saveActiveRoundState();
+      updateUI();
+      renderHands(true);
+      playCardSound();
+      setStatus("Giliran Bandar...");
+
+      const dealerStep = () => {
+        if (calcScore(dealerHand) < 17) {
+          setTimeout(() => {
+            dealerHand.push(deck.pop());
+            renderHands(true);
+            playCardSound();
+            dealerStep();
+          }, 420);
+        } else {
+          decideWinner();
+        }
+      };
+
+      setTimeout(dealerStep, 350);
+    }
+
+    function decideWinner() {
+      const pScore = calcScore(playerHand);
+      const dScore = calcScore(dealerHand);
+
+      if (dScore > 21) {
+        finishRound(`Bandar BUST (${dScore})! Untung +${formatNum(bet)} 🎉`, "win");
+      } else if (pScore > dScore) {
+        finishRound(`Kamu MENANG (${pScore} vs ${dScore})! Untung +${formatNum(bet)} 🎉`, "win");
+      } else if (pScore === dScore) {
+        finishRound(`SERI / PUSH (${pScore} sama)! Taruhan kembali 🤝`, "push");
+      } else {
+        finishRound(`Bandar Menang (${dScore} vs ${pScore}) 💸`, "lose");
+      }
+    }
+
+    function finishRound(msg, outcome) {
+      localStorage.removeItem("bj_active_round");
+
+      // Kembalikan bet dasar ke nominal awal sebelum didouble agar ronde berikutnya tidak loncat ekstrem
+      const baseBetAfterDouble = doubledThisRound ? Math.max(25, Math.floor(bet / 2)) : bet;
+
+      if (outcome === "blackjack") {
+        const bonus = Math.floor((bet * 3) / 2);
+        balance += bet + bonus;
+        bet = autoBetUp && balance > 0 ? Math.min(balance, baseBetAfterDouble + 25) : Math.min(balance, baseBetAfterDouble);
+        playWinSound(true);
+      } else if (outcome === "win") {
+        balance += bet * 2;
+        bet = autoBetUp && balance > 0 ? Math.min(balance, baseBetAfterDouble + 25) : Math.min(balance, baseBetAfterDouble);
+        playWinSound(false);
+      } else if (outcome === "push") {
+        balance += bet;
+        bet = Math.min(balance, baseBetAfterDouble);
+        vibrateDevice(20);
+      } else {
+        bet = Math.min(balance, baseBetAfterDouble);
+        playLoseSound(outcome === "bust");
+      }
+
+      roundActive = false;
+      doubledThisRound = false;
+
+      if (balance <= 0) {
+        balance = 0;
+        bet = 0;
+        lockUntil = Date.now() + LOCKOUT_HOURS * 3600 * 1000;
+        localStorage.setItem("bj_lock_until", String(lockUntil));
+        msg = `${msg} — Chip habis! Coba lagi lain kali.`;
+      }
+
+      syncLeaderboard();
+      const bannerType = outcome === "blackjack" ? "win" : outcome === "bust" ? "lose" : outcome;
+      setStatus(msg, bannerType);
+      updateUI();
+    }
+
+    setInterval(() => {
+      if (!roundActive && isDeviceLocked()) {
+        updateUI();
+      } else if (!roundActive && lockUntil > 0 && Date.now() >= lockUntil) {
+        lockUntil = 0;
+        localStorage.removeItem("bj_lock_until");
+        if (balance <= 0) balance = INITIAL_BALANCE;
+        bet = Math.min(50, balance);
+        setStatus("Masa tunggu selesai! Selamat bermain lagi.", "win");
+        updateUI();
+      }
+    }, 1000);
+
+    updateSoundButton();
+    ensureUsername();
+    syncLeaderboard();
+    const resumed = restoreActiveRoundState();
+    renderHands(false);
+    updateUI();
+    if (!resumed && isDeviceLocked()) {
+      setStatus("Chip habis — coba lagi lain kali.", "lose");
+    }
+  </script>
+</body>
+</html>
